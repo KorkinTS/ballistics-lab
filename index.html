@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Интерактивная модель движения тела, брошенного под углом к горизонту.">
+  <title>Траектория — механика движения</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="physics.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="wordmark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 3v18h18M5 17C9 4 16 4 21 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="15" cy="8" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>Механика движения</span>
+      </div>
+      <button class="model-link" data-formula="model">О модели <span aria-hidden="true">↗</span></button>
+    </header>
+
+    <main>
+      <section class="intro">
+        <h1>Траектория</h1>
+        <p>Как угол, скорость и гравитация меняют полёт тела</p>
+      </section>
+
+      <div class="workspace">
+        <aside class="settings" aria-labelledby="settings-title">
+          <header class="section-heading">
+            <h2 id="settings-title">Условия запуска</h2>
+            <button id="reset" class="quiet" title="Вернуть начальные параметры"><span aria-hidden="true">↺</span> Сбросить</button>
+          </header>
+          <form id="settings-form">
+            <div class="control">
+              <div class="field-head"><button type="button" class="formula-label" data-formula="angle">Угол <i>α</i></button><div class="number"><input id="angle" aria-label="Угол в градусах" type="number" min="-90" max="90" step="any" value="45"><span>°</span></div></div>
+              <input id="angle-range" aria-label="Угол, ползунок" type="range" min="-90" max="90" step="1" value="45">
+            </div>
+            <div class="control">
+              <div class="field-head"><button type="button" class="formula-label" data-formula="speed">Начальная скорость <i>v₀</i></button><div class="number"><input id="speed" aria-label="Начальная скорость в метрах в секунду" type="number" min="0" max="10000" step="any" value="24"><span>м/с</span></div></div>
+              <input id="speed-range" aria-label="Скорость, ползунок" type="range" min="0" max="100" step="1" value="24">
+            </div>
+            <div class="control">
+              <div class="field-head"><button type="button" class="formula-label" data-formula="height">Начальная высота <i>h₀</i></button><div class="number"><input id="height" aria-label="Начальная высота в метрах" type="number" min="0" max="10000" step="any" value="4"><span>м</span></div></div>
+              <input id="height-range" aria-label="Высота, ползунок" type="range" min="0" max="100" step="1" value="4">
+            </div>
+            <div class="environment">
+              <div class="field-head"><button type="button" class="formula-label" data-formula="gravity">Гравитация <i>g</i></button><div class="number gravity"><input id="gravity" aria-label="Ускорение свободного падения в метрах на секунду в квадрате" type="number" min="0.01" max="10000" step="any" value="9.81"><span>м/с²</span></div></div>
+              <div class="presets" role="group" aria-label="Выбор гравитации">
+                <button type="button" data-g="9.81" aria-pressed="true">Земля</button>
+                <button type="button" data-g="1.62" aria-pressed="false">Луна</button>
+                <button type="button" data-g="274" aria-pressed="false">Солнце</button>
+                <button type="button" id="custom-g" aria-pressed="false">Своя</button>
+              </div>
+            </div>
+            <div class="drag-section">
+              <div class="drag-head">
+                <label class="checkbox-label"><input type="checkbox" id="drag"> Сопротивление воздуха</label>
+                <button type="button" data-formula="drag" class="help" aria-label="Формула сопротивления воздуха">?</button>
+              </div>
+              <div id="drag-settings" hidden>
+                <div class="field-head"><button type="button" class="formula-label" data-formula="drag">Коэффициент <i>k</i></button><div class="number"><input id="coefficient" aria-label="Коэффициент сопротивления в обратных секундах" type="number" min="0" max="10" step="any" value="0.15"><span>с⁻¹</span></div></div>
+                <p>Линейное сопротивление, пропорциональное скорости.</p>
+              </div>
+            </div>
+          </form>
+        </aside>
+
+        <section class="chart" aria-labelledby="chart-title">
+          <header class="chart-header">
+            <div><h2 id="chart-title">График полёта</h2><div class="legend"><span class="sample"></span> Траектория <span id="comparison-legend" hidden><span class="sample dashed"></span> Без сопротивления</span></div></div>
+            <div class="tools" role="group" aria-label="Масштаб графика">
+              <button type="button" id="zoom-out" aria-label="Уменьшить масштаб" title="Уменьшить масштаб">−</button>
+              <button type="button" id="zoom-in" aria-label="Увеличить масштаб" title="Увеличить масштаб">+</button>
+              <button type="button" id="fit" aria-label="Вместить траекторию" title="Вместить траекторию">⤢</button>
+            </div>
+          </header>
+          <div id="plot" class="plot">
+            <canvas id="canvas" tabindex="0" aria-label="Интерактивный график полёта. Стрелки выбирают точку, Enter закрепляет её, Escape снимает закрепление." aria-describedby="plot-hint"></canvas>
+            <div id="tooltip" class="tooltip" hidden></div>
+          </div>
+          <div class="plot-hint" id="plot-hint"><span>Наведение показывает точку, нажатие закрепляет её. График можно перетаскивать.</span><button id="unpin" type="button" class="quiet" hidden>Снять точку</button></div>
+          <div class="readout">
+            <div><button class="formula-label" data-formula="time">Время <i>t</i></button><output id="point-time"></output></div>
+            <div><button class="formula-label" data-formula="x">Координата <i>x</i></button><output id="point-x"></output></div>
+            <div><button class="formula-label" data-formula="y">Координата <i>y</i></button><output id="point-y"></output></div>
+            <div><button class="formula-label" data-formula="vector">Радиус-вектор <i>r⃗</i></button><output id="point-vector"></output></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="summary" aria-labelledby="summary-title">
+        <h2 id="summary-title">Итоги полёта</h2>
+        <div><button class="formula-label" data-formula="range">Дальность <i>L</i></button><output id="flight-range"></output></div>
+        <div><button class="formula-label" data-formula="peak">Макс. высота <i>H</i></button><output id="flight-peak"></output></div>
+        <div><button class="formula-label" data-formula="duration">Время полёта <i>T</i></button><output id="flight-time"></output></div>
+      </section>
+    </main>
+    <footer>Нажмите на название величины, чтобы открыть формулу.</footer>
+  </div>
+
+  <dialog id="formula-dialog" aria-labelledby="formula-title">
+    <div class="dialog-head"><h2 id="formula-title"></h2><form method="dialog"><button aria-label="Закрыть формулу">×</button></form></div>
+    <div id="formula-body"></div>
+  </dialog>
+</body>
+</html>
