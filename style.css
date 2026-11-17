@@ -92,6 +92,32 @@ dialog::backdrop { background: rgb(38 52 46 / 42%); }
 .dialog-head button { border: 1px solid var(--line); border-radius: 4px; background: none; width: 32px; height: 32px; font-size: 21px; }
 #formula-body p { margin: 12px 0 0; }
 .equation { padding: 8px 10px; background: #eef1e8; font: 17px/1.35 var(--serif); overflow-wrap: anywhere; }
+.vector-symbol {
+  position: relative;
+  display: inline-block;
+  min-width: .62em;
+  padding-top: .16em;
+  text-align: center;
+  white-space: nowrap;
+}
+.vector-symbol::before, .vector-symbol::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.vector-symbol::before {
+  inset: .21em .09em auto .06em;
+  border-top: 1px solid currentColor;
+}
+.vector-symbol::after {
+  top: .21em;
+  right: .08em;
+  width: .19em;
+  height: .19em;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: translateY(calc(-50% + .5px)) rotate(45deg);
+}
 @media (max-width: 760px) {
   .workspace { grid-template-columns: 1fr; }
   #settings-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }

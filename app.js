@@ -55,14 +55,24 @@ const formulas = {
     "При k > 0 время находится численно из y(T) = 0 на нисходящей части траектории."],
 };
 
+function renderFormulaText(text) {
+  return text.split(/([A-Za-z]\u20d7)/u).map((part) => {
+    if (!part.endsWith("\u20d7")) return part;
+    const symbol = document.createElement("i");
+    symbol.className = "vector-symbol";
+    symbol.textContent = part[0];
+    return symbol;
+  });
+}
+
 const dialog = byId("formula-dialog");
 document.querySelectorAll("[data-formula]").forEach((button) => {
   button.addEventListener("click", () => {
     const [title, ...lines] = formulas[button.dataset.formula];
-    byId("formula-title").textContent = title;
+    byId("formula-title").replaceChildren(...renderFormulaText(title));
     byId("formula-body").replaceChildren(...lines.map((line) => {
       const paragraph = document.createElement("p");
-      paragraph.textContent = Array.isArray(line) ? line[0] : line;
+      paragraph.append(...renderFormulaText(Array.isArray(line) ? line[0] : line));
       if (Array.isArray(line)) paragraph.className = "equation";
       return paragraph;
     }));
